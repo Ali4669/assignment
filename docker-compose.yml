@@ -1,0 +1,59 @@
+version: '3.8'  # Optional; can be removed if not needed
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+    image: wcazhar123/frontend-app:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_USER=${DB_USER}  # Ensure these are defined in your environment or replace with hardcoded values for testing
+      - DB_PW=${DB_PW}
+      - MONGO_URI=mongodb://${DB_USER}:${DB_PW}@mongodb:27017/monolithic_app_db
+    networks:
+      my_custom_network:
+        ipv4_address: 192.168.0.10
+
+  backend:
+    build:
+      context: ./backend
+    image: wcazhar123/backend-app:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_USER=${DB_USER}  # Same consideration as above
+      - DB_PW=${DB_PW}
+      - MONGO_URI=mongodb://${DB_USER}:${DB_PW}@mongodb:27017/monolithic_app_db
+    networks:
+      my_custom_network:
+        ipv4_address: 192.168.0.20
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  mongodb:
+    image: mongo
+    environment:
+      MONGO_INITDB_DATABASE: monolithic_app_db
+      MONGO_INITDB_ROOT_USERNAME: ali
+      MONGO_INITDB_ROOT_PASSWORD: WCazhar123
+    ports:
+      - "27017:27017"
+    networks:
+      my_custom_network:
+        ipv4_address: 192.168.0.30
+    volumes:
+      - mongo_data:/data/db
+
+networks:
+  my_custom_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.0.0/24
+
+volumes:
+  mongo_data:
