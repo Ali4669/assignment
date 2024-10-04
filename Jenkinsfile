@@ -14,6 +14,13 @@ pipeline {
             steps {
                 // Clone the repository from the master branch
                 git branch: 'master', url: 'https://github.com/Ali4669/assignment'
+                sh 'echo Current Working Directory: $(pwd)'
+                    
+                    // Get Git version
+                    sh 'git --version'
+                    
+                    // Get Docker version
+                    sh 'docker --version'
             }
         }
 
