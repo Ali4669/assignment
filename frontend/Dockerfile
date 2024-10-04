@@ -1,9 +1,6 @@
 # Use a base image
 FROM node:14
 
-# Install Git
-RUN apt-get update && apt-get install -y git
-
 # Set the working directory
 WORKDIR /app
 
