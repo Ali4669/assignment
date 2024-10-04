@@ -48,6 +48,12 @@ pipeline {
         stage('Run Containers') {
             steps {
                 script {
+                    // Stop and remove existing containers if they exist
+                    sh "docker stop backend-app || true"
+                    sh "docker rm backend-app || true"
+                    sh "docker stop frontend-app || true"
+                    sh "docker rm frontend-app || true"
+
                     // Run backend container
                     sh "docker run -d --name backend-app --restart unless-stopped ${BACKEND_IMAGE_NAME}:${IMAGE_TAG}"
 
@@ -61,9 +67,20 @@ pipeline {
             steps {
                 script {
                     // Check if backend is healthy
-                    sh "docker ps --filter 'name=backend-app' --filter 'health=healthy'"
+                    def backendHealth = sh(script: "docker inspect --format='{{.State.Health.Status}}' backend-app", returnStdout: true).trim()
+                    if (backendHealth == 'healthy') {
+                        echo "Backend is healthy."
+                    } else {
+                        error "Backend is not healthy."
+                    }
+
                     // Check if frontend is healthy
-                    sh "docker ps --filter 'name=frontend-app' --filter 'health=healthy'"
+                    def frontendHealth = sh(script: "docker inspect --format='{{.State.Health.Status}}' frontend-app", returnStdout: true).trim()
+                    if (frontendHealth == 'healthy') {
+                        echo "Frontend is healthy."
+                    } else {
+                        error "Frontend is not healthy."
+                    }
                 }
             }
         }
