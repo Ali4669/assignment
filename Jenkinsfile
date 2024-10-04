@@ -12,8 +12,8 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Clone the repository
-                git branch: 'main', url: 'https://github.com/Ali4669/assignment'
+                // Clone the repository from the master branch
+                git branch: 'master', url: 'https://github.com/Ali4669/assignment'
             }
         }
 
