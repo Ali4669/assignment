@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        DB_USER = 'ali'
+        DB_PW = 'WCazhar123'
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -8,39 +13,24 @@ pipeline {
             }
         }
 
-        stage('Build Backend Docker Image') {
+        stage('Build Docker Images') {
             steps {
-                dir('backend') {
-                    script {
+                script {
+                    dir('backend') {
                         sh 'docker build -t wcazhar123/backend-app:latest .'
                     }
-                }
-            }
-        }
-
-        stage('Build Frontend Docker Image') {
-            steps {
-                dir('frontend') {
-                    script {
+                    dir('frontend') {
                         sh 'docker build -t wcazhar123/frontend-app:latest .'
                     }
                 }
             }
         }
 
-        stage('Push Backend Image') {
+        stage('Push Docker Images') {
             steps {
                 script {
-                    // Directly push the backend image to the public repository
+                    // Push the images to Docker Hub or any registry
                     sh 'docker push wcazhar123/backend-app:latest'
-                }
-            }
-        }
-
-        stage('Push Frontend Image') {
-            steps {
-                script {
-                    // Directly push the frontend image to the public repository
                     sh 'docker push wcazhar123/frontend-app:latest'
                 }
             }
@@ -60,7 +50,6 @@ pipeline {
                 }
             }
         }
-
 
         stage('Run MongoDB Container') {
             steps {
