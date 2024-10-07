@@ -65,18 +65,4 @@ pipeline {
         }
     }
 
-    post {
-        failure {
-            echo 'Build or Push Failed.'
-        }
-        always {
-            script {
-                // Clean up by stopping and removing containers if they exist
-                sh 'docker stop backend-app || true'
-                sh 'docker rm backend-app || true'
-                sh 'docker stop frontend-app || true'
-                sh 'docker rm frontend-app || true'
-            }
-        }
-    }
 }
