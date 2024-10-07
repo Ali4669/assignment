@@ -1,12 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        // Define image names based on your Docker Hub repos
-        BACKEND_IMAGE = 'wcazhar123/backend-app'
-        FRONTEND_IMAGE = 'wcazhar123/frontend-app'
-    }
-
     stages {
         stage('Clone Repository') {
             steps {
@@ -15,34 +9,63 @@ pipeline {
             }
         }
 
-        stage('Build Backend') {
+        stage('Build Backend Docker Image') {
             steps {
-                dir('backend') { // Navigate to the backend directory
-                    sh 'docker build -t $BACKEND_IMAGE .'
+                // Navigate to the backend directory
+                dir('backend') {
+                    // Build the Docker image for the backend
+                    script {
+                        def backendImageName = 'wcazhar123/backend-app'
+                        def backendTag = 'latest' // or specify a different tag if needed
+                        sh "docker build -t ${backendImageName}:${backendTag} ."
+                    }
                 }
             }
         }
 
-        stage('Build Frontend') {
+        stage('Build Frontend Docker Image') {
             steps {
-                dir('frontend') { // Navigate to the frontend directory
-                    sh 'docker build -t $FRONTEND_IMAGE .'
+                // Navigate to the frontend directory
+                dir('frontend') {
+                    // Build the Docker image for the frontend
+                    script {
+                        def frontendImageName = 'wcazhar123/frontend-app'
+                        def frontendTag = 'latest' // or specify a different tag if needed
+                        sh "docker build -t ${frontendImageName}:${frontendTag} ."
+                    }
                 }
             }
         }
 
         stage('Push Backend Image') {
             steps {
-                // Push the backend image to Docker Hub
-                sh 'docker push $BACKEND_IMAGE'
+                // Push the Docker image for the backend
+                script {
+                    def backendImageName = 'wcazhar123/backend-app'
+                    def backendTag = 'latest' // or specify the same tag used in build
+                    sh "docker push ${backendImageName}:${backendTag}"
+                }
             }
         }
 
         stage('Push Frontend Image') {
             steps {
-                // Push the frontend image to Docker Hub
-                sh 'docker push $FRONTEND_IMAGE'
+                // Push the Docker image for the frontend
+                script {
+                    def frontendImageName = 'wcazhar123/frontend-app'
+                    def frontendTag = 'latest' // or specify the same tag used in build
+                    sh "docker push ${frontendImageName}:${frontendTag}"
+                }
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'Build and Push Successful!'
+        }
+        failure {
+            echo 'Build or Push Failed.'
         }
     }
 }
