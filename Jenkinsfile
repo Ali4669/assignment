@@ -52,7 +52,7 @@ pipeline {
                     // Check if the network exists, if not, create it
                     sh '''
                     if ! docker network ls | grep my_custom_network; then
-                        docker network create --subnet=192.168.0.0/24 my_custom_network;
+                        docker network create --subnet=172.18.0.0/24 my_custom_network;
                         echo "Network my_custom_network created successfully."
                     else
                         echo "Network my_custom_network already exists."
