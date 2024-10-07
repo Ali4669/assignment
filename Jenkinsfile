@@ -66,7 +66,7 @@ pipeline {
     steps {
         script {
             // Run the MongoDB container using the correct network name
-            sh 'docker run -d --name mongodb --network monolithic-architecture-example-app_my_custom_network --ip 192.168.0.30 -e MONGO_INITDB_DATABASE=monolithic_app_db -e MONGO_INITDB_ROOT_USERNAME=ali -e MONGO_INITDB_ROOT_PASSWORD=WCazhar123 mongo'
+            sh 'docker run -d --name mongodb --network  my_custom_network --ip 192.168.0.30 -e MONGO_INITDB_DATABASE=monolithic_app_db -e MONGO_INITDB_ROOT_USERNAME=ali -e MONGO_INITDB_ROOT_PASSWORD=WCazhar123 mongo'
         }
     }
 }
