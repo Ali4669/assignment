@@ -49,15 +49,20 @@ pipeline {
         stage('Create Docker Network') {
             steps {
                 script {
-                    // Create a custom Docker network if it doesn't already exist
+                    // Check if the network exists, if not, create it
                     sh '''
                     if ! docker network ls | grep my_custom_network; then
                         docker network create --subnet=192.168.0.0/24 my_custom_network;
+                        echo "Network my_custom_network created successfully."
+                    else
+                        echo "Network my_custom_network already exists."
                     fi
+                    docker network ls
                     '''
                 }
             }
         }
+
 
         stage('Run MongoDB Container') {
             steps {
