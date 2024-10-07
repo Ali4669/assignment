@@ -1,11 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        DB_USER = 'ali'
-        DB_PW = 'WCazhar123'
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -13,24 +8,39 @@ pipeline {
             }
         }
 
-        stage('Build Docker Images') {
+        stage('Build Backend Docker Image') {
             steps {
-                script {
-                    dir('backend') {
+                dir('backend') {
+                    script {
                         sh 'docker build -t wcazhar123/backend-app:latest .'
                     }
-                    dir('frontend') {
+                }
+            }
+        }
+
+        stage('Build Frontend Docker Image') {
+            steps {
+                dir('frontend') {
+                    script {
                         sh 'docker build -t wcazhar123/frontend-app:latest .'
                     }
                 }
             }
         }
 
-        stage('Push Docker Images') {
+        stage('Push Backend Image') {
             steps {
                 script {
-                    // Push the images to Docker Hub or any registry
+                    // Directly push the backend image to the public repository
                     sh 'docker push wcazhar123/backend-app:latest'
+                }
+            }
+        }
+
+        stage('Push Frontend Image') {
+            steps {
+                script {
+                    // Directly push the frontend image to the public repository
                     sh 'docker push wcazhar123/frontend-app:latest'
                 }
             }
@@ -51,81 +61,50 @@ pipeline {
             }
         }
 
+
         stage('Run MongoDB Container') {
-            steps {
-                script {
-                    // Run MongoDB container on the custom network
-                    sh '''
-                    docker run -d --name mongodb --network my_custom_network --ip 192.168.0.30 \
-                    -e MONGO_INITDB_DATABASE=monolithic_app_db \
-                    -e MONGO_INITDB_ROOT_USERNAME=ali \
-                    -e MONGO_INITDB_ROOT_PASSWORD=WCazhar123 \
-                    mongo
-                    '''
-                }
-            }
+    steps {
+        script {
+            // Run the MongoDB container using the correct network name
+            sh 'docker run -d --name mongodb --network monolithic-architecture-example-app_my_custom_network --ip 192.168.0.30 -e MONGO_INITDB_DATABASE=monolithic_app_db -e MONGO_INITDB_ROOT_USERNAME=ali -e MONGO_INITDB_ROOT_PASSWORD=WCazhar123 mongo'
         }
+    }
+}
+
 
         stage('Wait for MongoDB to be Ready') {
             steps {
                 script {
-                    // Wait for MongoDB to be ready
+                    // Improved MongoDB readiness check
                     sh '''
                     for i in {1..30}; do
-                        if docker exec mongodb mongo --eval "print('MongoDB ready after waiting ' + $i + ' seconds')" > /dev/null; then
+                        if docker exec mongodb mongo --username ali --password WCazhar123 --eval "db.stats()" > /dev/null; then
                             echo "MongoDB is ready"
                             break
                         fi
-                        sleep 1
+                        echo "Waiting for MongoDB... ($i seconds)"
+                        sleep 2
                     done
                     '''
                 }
             }
         }
 
-        stage('Run Backend and Frontend Containers') {
+        stage('Run Backend Container') {
             steps {
                 script {
-                    // Run backend and frontend containers on the custom network
-                    sh '''
-                    docker run -d --name monolithic-architecture-example-app-backend --network my_custom_network --ip 192.168.0.20 \
-                    -p 8080:8080 \
-                    -e DB_USER=ali \
-                    -e DB_PW=WCazhar123 \
-                    -e MONGO_URI=mongodb://ali:WCazhar123@mongodb:27017/monolithic_app_db \
-                    wcazhar123/backend-app:latest
-
-                    docker run -d --name monolithic-architecture-example-app-frontend --network my_custom_network --ip 192.168.0.10 \
-                    -p 3000:3000 \
-                    -e DB_USER=ali \
-                    -e DB_PW=WCazhar123 \
-                    -e MONGO_URI=mongodb://ali:WCazhar123@mongodb:27017/monolithic_app_db \
-                    wcazhar123/frontend-app:latest
-                    '''
+                    // Run the backend container
+                    sh 'docker run -d --name monolithic-architecture-example-app-backend-1 --network my_custom_network -p 8080:8080 -e DB_USER=ali -e DB_PW=WCazhar123 -e MONGO_URI=mongodb://ali:WCazhar123@mongodb:27017/monolithic_app_db wcazhar123/backend-app:latest'
                 }
             }
         }
 
-        stage('Verify Services') {
+        stage('Run Frontend Container') {
             steps {
                 script {
-                    // Check if services are running
-                    sh 'docker ps | grep monolithic-architecture-example-app-backend'
-                    sh 'docker ps | grep monolithic-architecture-example-app-frontend'
+                    // Run the frontend container
+                    sh 'docker run -d --name monolithic-architecture-example-app-frontend-1 --network my_custom_network -p 3000:3000 -e DB_USER=ali -e DB_PW=WCazhar123 -e MONGO_URI=mongodb://ali:WCazhar123@mongodb:27017/monolithic_app_db wcazhar123/frontend-app:latest'
                 }
-            }
-        }
-    }
-
-    post {
-        always {
-            script {
-                // Clean up containers and network after the pipeline execution
-                sh '''
-                docker stop mongodb monolithic-architecture-example-app-backend monolithic-architecture-example-app-frontend || true
-                docker rm mongodb monolithic-architecture-example-app-backend monolithic-architecture-example-app-frontend || true
-                docker network rm my_custom_network || true
-                '''
             }
         }
     }
