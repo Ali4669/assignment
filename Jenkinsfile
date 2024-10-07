@@ -4,18 +4,16 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Checkout your code from the repository
                 git 'https://github.com/Ali4669/assignment.git'
             }
         }
 
-        stage('Create Custom Network') {
+        stage('Build Backend Docker Image') {
             steps {
-                script {
-                    // Create the custom Docker network if it doesn't exist
-                    sh '''
-                    docker network create --subnet=192.168.0.0/24 my_custom_network || true
-                    '''
+                dir('backend') {
+                    script {
+                        sh 'docker build -t wcazhar123/backend-app:latest .'
+                    }
                 }
             }
         }
@@ -24,20 +22,26 @@ pipeline {
             steps {
                 dir('frontend') {
                     script {
-                        // Build the frontend Docker image
                         sh 'docker build -t wcazhar123/frontend-app:latest .'
                     }
                 }
             }
         }
 
-        stage('Build Backend Docker Image') {
+        stage('Push Backend Image') {
             steps {
-                dir('backend') {
-                    script {
-                        // Build the backend Docker image
-                        sh 'docker build -t wcazhar123/backend-app:latest .'
-                    }
+                script {
+                    // Directly push the backend image to the public repository
+                    sh 'docker push wcazhar123/backend-app:latest'
+                }
+            }
+        }
+
+        stage('Push Frontend Image') {
+            steps {
+                script {
+                    // Directly push the frontend image to the public repository
+                    sh 'docker push wcazhar123/frontend-app:latest'
                 }
             }
         }
@@ -45,25 +49,16 @@ pipeline {
         stage('Run MongoDB Container') {
             steps {
                 script {
-                    // Start MongoDB container with specified configurations
-                    sh '''
-                    docker run -d --name mongodb \
-                    --network my_custom_network \
-                    -e MONGO_INITDB_DATABASE=monolithic_app_db \
-                    -e MONGO_INITDB_ROOT_USERNAME=ali \
-                    -e MONGO_INITDB_ROOT_PASSWORD=WCazhar123 \
-                    --ip 192.168.0.30 \
-                    -p 27017:27017 \
-                    mongo
-                    '''
+                    // Run the MongoDB container
+                    sh 'docker run -d --name mongodb --network my_custom_network --ip 192.168.0.30 -e MONGO_INITDB_DATABASE=monolithic_app_db -e MONGO_INITDB_ROOT_USERNAME=ali -e MONGO_INITDB_ROOT_PASSWORD=WCazhar123 mongo'
                 }
             }
         }
 
-        stage('Run Backend Container') {
+        stage('Wait for MongoDB to be Ready') {
             steps {
                 script {
-                    // Wait for MongoDB to be ready
+                    // Wait for MongoDB to be ready before running the backend
                     sh '''
                     for i in {1..30}; do
                         if docker exec mongodb mongo --eval "print(\"waited for\" + $i + \" seconds\")" > /dev/null; then
@@ -73,17 +68,15 @@ pipeline {
                         sleep 1
                     done
                     '''
-                    
+                }
+            }
+        }
+
+        stage('Run Backend Container') {
+            steps {
+                script {
                     // Run the backend container
-                    sh '''
-                    docker run -d --name backend-app \
-                    --network my_custom_network \
-                    -e DB_USER=ali \
-                    -e DB_PW=WCazhar123 \
-                    -e MONGO_URI=mongodb://ali:WCazhar123@mongodb:27017/monolithic_app_db \
-                    -p 8080:8080 \
-                    wcazhar123/backend-app:latest
-                    '''
+                    sh 'docker run -d --name monolithic-architecture-example-app-backend-1 --network my_custom_network --ip 192.168.0.20 -p 8080:8080 -e DB_USER=ali -e DB_PW=WCazhar123 -e MONGO_URI=mongodb://ali:WCazhar123@mongodb:27017/monolithic_app_db wcazhar123/backend-app:latest'
                 }
             }
         }
@@ -92,28 +85,8 @@ pipeline {
             steps {
                 script {
                     // Run the frontend container
-                    sh '''
-                    docker run -d --name frontend-app \
-                    --network my_custom_network \
-                    -e DB_USER=ali \
-                    -e DB_PW=WCazhar123 \
-                    -e MONGO_URI=mongodb://ali:WCazhar123@mongodb:27017/monolithic_app_db \
-                    -p 3000:3000 \
-                    wcazhar123/frontend-app:latest
-                    '''
+                    sh 'docker run -d --name monolithic-architecture-example-app-frontend-1 --network my_custom_network --ip 192.168.0.10 -p 3000:3000 -e DB_USER=ali -e DB_PW=WCazhar123 -e MONGO_URI=mongodb://ali:WCazhar123@mongodb:27017/monolithic_app_db wcazhar123/frontend-app:latest'
                 }
-            }
-        }
-    }
-
-    post {
-        always {
-            script {
-                // Cleanup containers and the custom network after the build
-                sh '''
-                docker rm -f mongodb backend-app frontend-app || true
-                docker network rm my_custom_network || true
-                '''
             }
         }
     }
