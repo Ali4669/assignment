@@ -50,7 +50,7 @@ pipeline {
             steps {
                 script {
                     // Run the backend container
-                    sh 'docker run -d --name backend-app -p 8080:8080 wcazhar123/backend-app:latest'
+                    sh 'docker run -d --name monolithic-architecture-example-app-backend-1 -p 8080:8080 wcazhar123/backend-app:latest'
                 }
             }
         }
@@ -59,7 +59,7 @@ pipeline {
             steps {
                 script {
                     // Run the frontend container
-                    sh 'docker run -d --name frontend-app -p 3000:3000 wcazhar123/frontend-app:latest'
+                    sh 'docker run -d --name monolithic-architecture-example-app-frontend-1 -p 3000:3000 wcazhar123/frontend-app:latest'
                 }
             }
         }
