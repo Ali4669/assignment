@@ -32,7 +32,7 @@ pipeline {
             steps {
                 script {
                     // Directly push the backend image to the public repository
-                    sh 'docker push wcazhar123/backend-app:backend'
+                    sh 'docker push wcazhar123/backend-app:latest'
                 }
             }
         }
@@ -41,7 +41,25 @@ pipeline {
             steps {
                 script {
                     // Directly push the frontend image to the public repository
-                    sh 'docker push wcazhar123/frontend-app:frontend'
+                    sh 'docker push wcazhar123/frontend-app:latest'
+                }
+            }
+        }
+
+        stage('Run Backend Container') {
+            steps {
+                script {
+                    // Run the backend container
+                    sh 'docker run -d --name backend-app -p 8080:8080 wcazhar123/backend-app:latest'
+                }
+            }
+        }
+
+        stage('Run Frontend Container') {
+            steps {
+                script {
+                    // Run the frontend container
+                    sh 'docker run -d --name frontend-app -p 3000:3000 wcazhar123/frontend-app:latest'
                 }
             }
         }
@@ -50,6 +68,15 @@ pipeline {
     post {
         failure {
             echo 'Build or Push Failed.'
+        }
+        always {
+            script {
+                // Clean up by stopping and removing containers if they exist
+                sh 'docker stop backend-app || true'
+                sh 'docker rm backend-app || true'
+                sh 'docker stop frontend-app || true'
+                sh 'docker rm frontend-app || true'
+            }
         }
     }
 }
