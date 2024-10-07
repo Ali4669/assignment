@@ -31,10 +31,8 @@ pipeline {
         stage('Push Backend Image') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'd7ad8ca2-2912-43be-923a-be67b90b8e6c', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh 'echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin'
-                        sh 'docker push wcazhar123/backend-app:backend'
-                    }
+                    // Directly push the backend image to the public repository
+                    sh 'docker push wcazhar123/backend-app:backend'
                 }
             }
         }
@@ -42,10 +40,8 @@ pipeline {
         stage('Push Frontend Image') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'd7ad8ca2-2912-43be-923a-be67b90b8e6c', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh 'echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin'
-                        sh 'docker push wcazhar123/frontend-app:frontend'
-                    }
+                    // Directly push the frontend image to the public repository
+                    sh 'docker push wcazhar123/frontend-app:frontend'
                 }
             }
         }
