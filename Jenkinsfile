@@ -64,7 +64,7 @@ pipeline {
     steps {
         script {
             // Run the MongoDB container using the network name
-            sh 'docker run -d --name mongodb --network  my_custom_network --ip 192.168.0.30 -e MONGO_INITDB_DATABASE=monolithic_app_db -e MONGO_INITDB_ROOT_USERNAME=ali -e MONGO_INITDB_ROOT_PASSWORD=WCazhar123 mongo'
+            sh 'docker run -d --name mongodb --network  my_custom_network1 --ip 192.168.0.30 -e MONGO_INITDB_DATABASE=monolithic_app_db -e MONGO_INITDB_ROOT_USERNAME=ali -e MONGO_INITDB_ROOT_PASSWORD=WCazhar123 mongo'
         }
     }
 }
@@ -90,7 +90,7 @@ pipeline {
         stage('Run Backend Container') {
             steps {
                 script {
-                    sh 'docker run -d --name monolithic-architecture-example-app-backend-1 --network my_custom_network -p 8080:8080 -e DB_USER=ali -e DB_PW=WCazhar123 -e MONGO_URI=mongodb://ali:WCazhar123@mongodb:27017/monolithic_app_db wcazhar123/backend-app:latest'
+                    sh 'docker run -d --name monolithic-architecture-example-app-backend-1 --network my_custom_network1 -p 8080:8080 -e DB_USER=ali -e DB_PW=WCazhar123 -e MONGO_URI=mongodb://ali:WCazhar123@mongodb:27017/monolithic_app_db wcazhar123/backend-app:latest'
                 }
             }
         }
@@ -98,7 +98,7 @@ pipeline {
         stage('Run Frontend Container') {
             steps {
                 script {
-                    sh 'docker run -d --name monolithic-architecture-example-app-frontend-1 --network my_custom_network -p 3000:3000 -e DB_USER=ali -e DB_PW=WCazhar123 -e MONGO_URI=mongodb://ali:WCazhar123@mongodb:27017/monolithic_app_db wcazhar123/frontend-app:latest'
+                    sh 'docker run -d --name monolithic-architecture-example-app-frontend-1 --network my_custom_network1 -p 3000:3000 -e DB_USER=ali -e DB_PW=WCazhar123 -e MONGO_URI=mongodb://ali:WCazhar123@mongodb:27017/monolithic_app_db wcazhar123/frontend-app:latest'
                 }
             }
         }
