@@ -1,4 +1,4 @@
-version: '3.8'  # Optional; can be removed if not needed
+version: '3.8' 
 
 services:
   frontend:
@@ -8,7 +8,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DB_USER=${DB_USER}  # Ensure these are defined in your environment or replace with hardcoded values for testing
+      - DB_USER=${DB_USER} 
       - DB_PW=${DB_PW}
       - MONGO_URI=mongodb://${DB_USER}:${DB_PW}@mongodb:27017/monolithic_app_db
     networks:
@@ -22,7 +22,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - DB_USER=${DB_USER}  # Same consideration as above
+      - DB_USER=${DB_USER}  
       - DB_PW=${DB_PW}
       - MONGO_URI=mongodb://${DB_USER}:${DB_PW}@mongodb:27017/monolithic_app_db
     networks:
