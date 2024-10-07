@@ -2,22 +2,17 @@ pipeline {
     agent any
 
     stages {
-        stage('Clone Repository') {
+        stage('Checkout') {
             steps {
-                // Clone the GitHub repository
                 git 'https://github.com/Ali4669/assignment.git'
             }
         }
 
         stage('Build Backend Docker Image') {
             steps {
-                // Navigate to the backend directory
                 dir('backend') {
-                    // Build the Docker image for the backend
                     script {
-                        def backendImageName = 'wcazhar123/backend-app'
-                        def backendTag = 'latest' // or specify a different tag if needed
-                        sh "docker build -t ${backendImageName}:${backendTag} ."
+                        sh 'docker build -t wcazhar123/backend-app:latest .'
                     }
                 }
             }
@@ -25,13 +20,9 @@ pipeline {
 
         stage('Build Frontend Docker Image') {
             steps {
-                // Navigate to the frontend directory
                 dir('frontend') {
-                    // Build the Docker image for the frontend
                     script {
-                        def frontendImageName = 'wcazhar123/frontend-app'
-                        def frontendTag = 'latest' // or specify a different tag if needed
-                        sh "docker build -t ${frontendImageName}:${frontendTag} ."
+                        sh 'docker build -t wcazhar123/frontend-app:latest .'
                     }
                 }
             }
@@ -39,31 +30,28 @@ pipeline {
 
         stage('Push Backend Image') {
             steps {
-                // Push the Docker image for the backend
                 script {
-                    def backendImageName = 'wcazhar123/backend-app'
-                    def backendTag = 'latest' // or specify the same tag used in build
-                    sh "docker push ${backendImageName}:${backendTag}"
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials-id', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh 'echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin'
+                        sh 'docker push wcazhar123/backend-app:latest'
+                    }
                 }
             }
         }
 
         stage('Push Frontend Image') {
             steps {
-                // Push the Docker image for the frontend
                 script {
-                    def frontendImageName = 'wcazhar123/frontend-app'
-                    def frontendTag = 'latest' // or specify the same tag used in build
-                    sh "docker push ${frontendImageName}:${frontendTag}"
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials-id', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh 'echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin'
+                        sh 'docker push wcazhar123/frontend-app:latest'
+                    }
                 }
             }
         }
     }
 
     post {
-        success {
-            echo 'Build and Push Successful!'
-        }
         failure {
             echo 'Build or Push Failed.'
         }
